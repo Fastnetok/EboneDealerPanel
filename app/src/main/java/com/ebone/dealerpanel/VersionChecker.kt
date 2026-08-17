@@ -154,14 +154,27 @@ object VersionChecker {
             .create()
         progressDialog.show()
 
+        // NEW: file jahan APK save hogi
+        val apkFile = File(context.getExternalFilesDir(null), "update.apk")
+
         thread {
             try {
+                // NEW: purani/adhoori file agar maujood ho to pehle delete kar dein,
+                // taake purani corrupt file ke sath confusion na ho.
+                if (apkFile.exists()) apkFile.delete()
+
                 val request = Request.Builder().url(apkUrl).build()
                 val response = client.newCall(request).execute()
+
+                // NEW: agar GitHub ne error/redirect page bheja (successful nahi),
+                // to yahin rok dein — corrupt file save hi na hone dein.
+                if (!response.isSuccessful) {
+                    throw Exception("Download failed with HTTP ${response.code}")
+                }
+
                 val body = response.body ?: throw Exception("Empty response")
                 val totalBytes = body.contentLength()
 
-                val apkFile = File(context.getExternalFilesDir(null), "update.apk")
                 var downloadedBytes = 0L
 
                 body.byteStream().use { input ->
@@ -182,12 +195,21 @@ object VersionChecker {
                     }
                 }
 
+                // NEW: confirm karein ke poori file download hui, adhoori nahi.
+                // Agar server ne totalBytes bataya tha aur woh downloadedBytes se
+                // match nahi karta, to yeh ek corrupt/incomplete download hai.
+                if (totalBytes > 0 && downloadedBytes != totalBytes) {
+                    apkFile.delete()
+                    throw Exception("Incomplete download: got $downloadedBytes of $totalBytes bytes")
+                }
+
                 context.runOnUiThread {
                     progressDialog.dismiss()
                     installApk(context, apkFile)
                 }
             } catch (e: Exception) {
                 android.util.Log.e("GitHubUpdate", "Download failed", e)
+                if (apkFile.exists()) apkFile.delete()
                 context.runOnUiThread {
                     progressDialog.dismiss()
                     AlertDialog.Builder(context)
