@@ -11,7 +11,28 @@ android {
         versionCode 3
         versionName '1.0.3'
     }
-    buildTypes { release { minifyEnabled false } }
+
+    // NEW: release signing config. Values come from environment variables
+    // (set as GitHub Actions secrets) so no password/keystore is ever
+    // committed to source control.
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KEYSTORE_PATH") ?: "keystore.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias System.getenv("KEY_ALIAS") ?: ""
+            keyPassword System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // NEW: attach the signing config so the output is
+            // app-release.apk (signed) instead of app-release-unsigned.apk
+            signingConfig signingConfigs.release
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

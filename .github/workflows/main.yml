@@ -27,7 +27,18 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
+      # NEW: keystore ko GitHub Secret (base64) se decode karke
+      # app/ folder mein rakhta hai, taake build.gradle ka
+      # storeFile file("keystore.jks") ise dhoond sake.
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore.jks
+
       - name: Build release APK
+        env:
+          KEYSTORE_PATH: keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease --stacktrace
 
       - name: List build outputs (debug)
