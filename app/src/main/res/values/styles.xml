@@ -1,0 +1,9 @@
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/ebone_primary_dark</item>
+        <item name="android:navigationBarColor">@color/ebone_bg</item>
+        <item name="colorAccent">@color/ebone_primary</item>
+    </style>
+</resources>

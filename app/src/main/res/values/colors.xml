@@ -1,0 +1,25 @@
+<resources>
+    <color name="ebone_primary">#5B4BDB</color>
+    <color name="ebone_primary_dark">#4435B7</color>
+    <color name="ebone_bg">#F7F7FC</color>
+    <color name="ebone_surface">#FFFFFF</color>
+    <color name="ebone_text">#202124</color>
+    <color name="ebone_muted">#6F7480</color>
+    <color name="ebone_border">#E6E7EF</color>
+    <color name="ebone_blue">#2E66D1</color>
+    <color name="ebone_green">#42A85F</color>
+    <color name="ebone_pink">#E94C76</color>
+    <color name="ebone_orange">#E99A24</color>
+    <color name="ebone_white">#FFFFFF</color>
+    <color name="wateen_tint">#F0F5FF</color>
+    <color name="wateen_border">#AFC6FF</color>
+    <color name="ebone_tint">#F0FAF3</color>
+    <color name="ebone_border_green">#B9DDBF</color>
+    <color name="zong_tint">#FFF3F5</color>
+    <color name="zong_border">#F4B6C4</color>
+    <color name="soft_purple">#F1EEFF</color>
+    <color name="soft_blue">#EFF4FF</color>
+    <color name="soft_green">#F0F8F2</color>
+    <color name="soft_orange">#FFF8EC</color>
+    <color name="soft_gray">#F5F5F7</color>
+</resources>
