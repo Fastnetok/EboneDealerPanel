@@ -20,6 +20,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.main)
         repo = DealerRepo(this)
 
+        // NEW: app khulte hi GitHub Releases check karta hai naye version ke liye
+        VersionChecker.checkForUpdate(this)
+
         // More menu: opens the Dealer Panel's additional settings screen.
         findViewById<TextView>(R.id.menuButton).setOnClickListener {
             startActivity(Intent(this, MoreActivity::class.java))

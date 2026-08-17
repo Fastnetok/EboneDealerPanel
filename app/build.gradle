@@ -8,8 +8,8 @@ android {
         applicationId 'com.ebone.dealerpanel'
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName '1.0.3'
+        versionCode 4
+        versionName '1.0.4'
     }
 
     // NEW: release signing config. Values come from environment variables
