@@ -28,11 +28,14 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: List build outputs (debug)
+        run: find app/build/outputs -type f -name "*.apk"
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
           name: EboneDealerPanel-release
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
