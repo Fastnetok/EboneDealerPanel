@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+# NEW: workflow ko GitHub Release banane/update karne ki permission chahiye
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Release APK
@@ -44,9 +48,30 @@ jobs:
       - name: List build outputs (debug)
         run: find app/build/outputs -type f -name "*.apk"
 
-      - name: Upload release APK
+      - name: Upload release APK (Actions artifact)
         uses: actions/upload-artifact@v4
         with:
           name: EboneDealerPanel-release
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      # NEW: app/build.gradle se versionName (e.g. "1.0.3") nikalta hai
+      # taake Release ka tag hamesha app ke actual version se match kare.
+      - name: Read versionName from build.gradle
+        id: version
+        run: |
+          VERSION_NAME=$(grep -oP "versionName\s+'\K[^']+" app/build.gradle)
+          echo "Detected versionName: $VERSION_NAME"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      # NEW: har push par khud-ba-khud GitHub Release banata/update karta
+      # hai, tag "v1.0.3" jaisa, aur usme signed APK attach kar deta hai.
+      # Agar isi version ka Release pehle se ho to yeh usko update kar
+      # dega (duplicate release nahi banega).
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version_name }}
+          name: Release v${{ steps.version.outputs.version_name }}
+          files: app/build/outputs/apk/release/*.apk
+          generate_release_notes: true
