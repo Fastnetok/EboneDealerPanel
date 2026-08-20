@@ -57,12 +57,33 @@ class PaymentActivity : AppCompatActivity() {
         )
 
         val presetPanel = intent.getStringExtra(EXTRA_PANEL)
-        if (!presetPanel.isNullOrBlank()) {
-            val index = listOf("Wateen", "Ebone", "Zong").indexOfFirst {
-                it.equals(presetPanel, ignoreCase = true)
-            }
-            if (index >= 0) {
-                panelSpinner.setSelection(index)
+
+        // NEW: zone-aware — filter the panel dropdown down to only the
+        // ISPs actually enabled for this dealer's zone (defaults to
+        // "Okara" / all-enabled if not yet zone-tagged, so nothing
+        // changes until Admin assigns zones). This is the safety net
+        // for dealers who reach this screen via the generic "Pay"
+        // button rather than a specific WATEEN/EBONE/ZONG tap on the
+        // dashboard (which already blocks disabled ones on MainActivity).
+        lifecycleScope.launch {
+            val id = repo.id()
+            val zone = if (id.isNotBlank()) {
+                repo.dealer(id).get("zone")?.toString()?.ifBlank { null } ?: "Okara"
+            } else "Okara"
+            val config = repo.zoneServiceConfig(zone)
+            val allPanels = listOf("Wateen" to (config["wateenEnabled"] ?: true), "Ebone" to (config["eboneEnabled"] ?: true), "Zong" to (config["zongEnabled"] ?: true))
+            val enabledPanels = allPanels.filter { it.second }.map { it.first }
+            val panelsToShow = enabledPanels.ifEmpty { listOf("Wateen", "Ebone", "Zong") } // never leave the dropdown empty
+
+            panelSpinner.adapter = ArrayAdapter(
+                this@PaymentActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                panelsToShow
+            )
+
+            if (!presetPanel.isNullOrBlank()) {
+                val index = panelsToShow.indexOfFirst { it.equals(presetPanel, ignoreCase = true) }
+                if (index >= 0) panelSpinner.setSelection(index)
             }
         }
 
@@ -138,7 +159,12 @@ class PaymentActivity : AppCompatActivity() {
                     if (tidInput.text.isNullOrBlank() && parsed.transactionId != null) {
                         tidInput.setText(parsed.transactionId)
                     }
-                    result.text = "OCR: ${parsed.transactionId ?: "TID not found"} | Rs. ${parsed.amount ?: "?"}"
+                    // NEW: word "OCR" removed (dealer shouldn't know the
+                    // verification method), but the actual TID/Amount
+                    // readout stays visible in "{TID} / Rs. {Amount}"
+                    // format — this is Confirm karo/adjust before
+                    // submitting info the dealer genuinely needs to see.
+                    result.text = "${parsed.transactionId ?: "TID not found"} / Rs. ${parsed.amount ?: "?"}"
                 }
             },
             onAmbiguous = { raw ->
@@ -152,11 +178,11 @@ class PaymentActivity : AppCompatActivity() {
                     if (tidInput.text.isNullOrBlank() && parsed.transactionId != null) {
                         tidInput.setText(parsed.transactionId)
                     }
-                    result.text = "OCR text read. Please check TID and amount before submitting."
+                    result.text = "${parsed.transactionId ?: "TID not found"} / Rs. ${parsed.amount ?: "?"}"
                 }
             },
             onFailure = { e ->
-                runOnUiThread { result.text = "OCR failed: ${e.message ?: "unknown error"}" }
+                runOnUiThread { result.text = "Screenshot could not be read: ${e.message ?: "unknown error"}" }
             }
         )
     }

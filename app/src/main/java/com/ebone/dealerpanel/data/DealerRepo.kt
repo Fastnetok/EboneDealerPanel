@@ -33,6 +33,36 @@ class DealerRepo(private val context: Context) {
 
     suspend fun dealer(id: String) = dealers.document(id).get().await()
 
+    /**
+     * NEW: reads which ISPs are actually enabled for a given zone
+     * (Okara/Renala/etc — Admin sets this per-franchise, since e.g.
+     * Renala only runs Zong right now while Okara runs all three).
+     * Missing doc / missing fields default to TRUE (enabled) — so
+     * existing zones/dealers keep working exactly as before until an
+     * Admin explicitly disables something for their zone.
+     */
+    suspend fun zoneServiceConfig(zone: String): Map<String, Boolean> {
+        val defaults = mapOf(
+            "eboneEnabled" to true,
+            "wateenEnabled" to true,
+            "zongEnabled" to true
+        )
+        return try {
+            val doc = db.collection("zoneServiceConfig").document(zone).get().await()
+            if (!doc.exists()) {
+                defaults
+            } else {
+                mapOf(
+                    "eboneEnabled" to (doc.getBoolean("eboneEnabled") ?: true),
+                    "wateenEnabled" to (doc.getBoolean("wateenEnabled") ?: true),
+                    "zongEnabled" to (doc.getBoolean("zongEnabled") ?: true)
+                )
+            }
+        } catch (_: Exception) {
+            defaults
+        }
+    }
+
     fun observeDealer(id: String, callback: (Map<String, Any>?) -> Unit): com.google.firebase.firestore.ListenerRegistration {
         return dealers.document(id).addSnapshotListener { snapshot, _ ->
             callback(snapshot?.data?.toNonNullMap())

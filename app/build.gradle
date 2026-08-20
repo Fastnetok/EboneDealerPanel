@@ -8,8 +8,8 @@ android {
         applicationId 'com.ebone.dealerpanel'
         minSdk 24
         targetSdk 34
-        versionCode 7
-        versionName '1.0.7'
+        versionCode 8
+        versionName '1.0.8'
     }
 
     // NEW: release signing config. Values come from environment variables
@@ -50,6 +50,13 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
     implementation 'com.google.firebase:firebase-firestore-ktx'
     implementation 'com.google.firebase:firebase-database'
+    // NEW: required for FirebaseAuth.getInstance().signInAnonymously() in
+    // DealerApp.kt — without this, the Realtime Database rules that
+    // require "auth != null" (e.g. paymentSettings, used to check the
+    // dealer's min/max payment limit before submitting) always fail,
+    // which is why payment submission showed "Unable to check payment
+    // limit. Please try again."
+    implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
     // NEW: required for `import kotlinx.coroutines.tasks.await` — this is
