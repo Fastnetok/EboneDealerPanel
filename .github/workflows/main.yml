@@ -31,11 +31,17 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
-      # NEW: keystore ko GitHub Secret (base64) se decode karke
-      # app/ folder mein rakhta hai, taake build.gradle ka
-      # storeFile file("keystore.jks") ise dhoond sake.
+      # Decode GitHub Secret keystore
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore.jks
+
+      # TEMPORARY: Verify that GitHub is using the correct signing key
+      - name: Verify signing key
+        run: |
+          keytool -list -v \
+            -keystore app/keystore.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" |
+            grep -E "Alias name:|SHA256:"
 
       - name: Build release APK
         env:
@@ -55,8 +61,7 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
-      # NEW: app/build.gradle se versionName (e.g. "1.0.3") nikalta hai
-      # taake Release ka tag hamesha app ke actual version se match kare.
+      # Read versionName from build.gradle
       - name: Read versionName from build.gradle
         id: version
         run: |
@@ -64,10 +69,7 @@ jobs:
           echo "Detected versionName: $VERSION_NAME"
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
-      # NEW: har push par khud-ba-khud GitHub Release banata/update karta
-      # hai, tag "v1.0.3" jaisa, aur usme signed APK attach kar deta hai.
-      # Agar isi version ka Release pehle se ho to yeh usko update kar
-      # dega (duplicate release nahi banega).
+      # Create or update GitHub Release
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
