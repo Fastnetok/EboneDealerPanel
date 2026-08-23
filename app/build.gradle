@@ -8,8 +8,8 @@ android {
         applicationId 'com.ebone.dealerpanel'
         minSdk 24
         targetSdk 34
-        versionCode 14
-        versionName '1.0.14'
+        versionCode 15
+        versionName '1.0.15'
     }
 
     // UPDATED: debug builds now also use the release keystore, so that
