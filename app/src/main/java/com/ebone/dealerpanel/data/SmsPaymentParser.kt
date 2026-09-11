@@ -11,12 +11,26 @@ import android.content.Context
 object SmsPaymentParser {
 
     private val amountRegex = Regex("""(?:Rs\.?|PKR)\s?([0-9][0-9,]*(?:\.[0-9]{1,2})?)""", RegexOption.IGNORE_CASE)
-    private val labeledTidRegex = Regex("""(?:T-?ID|Txn\s?ID|Trx\s?No|Reference)[:\s#]*([A-Za-z0-9]+)""", RegexOption.IGNORE_CASE)
+
+    // UPDATED: "Txn" made optional -> "Txn?\s?ID" now matches BOTH
+    // "Txn ID" (existing banks like EasyPaisa/JazzCash) AND
+    // "Tx ID" (Bank Alfa's format, e.g. "Tx ID FT26253OTJW1XG7F").
+    // Previously "Txn\s?ID" required the "n", so Bank Alfa's "Tx ID"
+    // was falling through and never being matched here.
+    private val labeledTidRegex = Regex("""(?:T-?ID|Txn?\s?ID|Trx\s?No|Reference)[:\s#]*([A-Za-z0-9]+)""", RegexOption.IGNORE_CASE)
+
     // Fallback: JazzCash/bank TIDs are typically a standalone 12–14 digit number
     // with no label at all in some screenshots. Deliberately excludes 11-digit
     // sequences, since Pakistani mobile numbers (03XXXXXXXXX) are exactly 11
     // digits and were being mistaken for TIDs.
     private val standaloneDigitTidRegex = Regex("""\b(\d{12,14})\b""")
+
+    // NEW: Bank Alfa's T-ID is alphanumeric (e.g. "FT26253OTJW1XG7F"), not a
+    // plain digit string, so standaloneDigitTidRegex alone can never catch it
+    // if the "Tx ID" label is missing/mangled by OCR. This catches an
+    // unlabeled alphanumeric TID that starts with 2 letters followed by
+    // digits/letters, length 10-20, as a last-resort fallback.
+    private val standaloneAlphaNumericTidRegex = Regex("""\b([A-Z]{2}[A-Z0-9]{8,18})\b""")
 
     data class ParsedResult(
         val amount: Double?,
@@ -31,6 +45,7 @@ object SmsPaymentParser {
         val labeledMatch = labeledTidRegex.find(smsBody)
         val tid = labeledMatch?.groupValues?.get(1)
             ?: standaloneDigitTidRegex.find(smsBody)?.groupValues?.get(1)
+            ?: standaloneAlphaNumericTidRegex.find(smsBody)?.groupValues?.get(1)
 
         return ParsedResult(amount, tid, smsBody)
     }
@@ -45,7 +60,8 @@ object SmsPaymentParser {
     fun parseAllTidCandidates(smsBody: String): List<String> {
         val labeled = labeledTidRegex.findAll(smsBody).map { it.groupValues[1] }.toList()
         val standalone = standaloneDigitTidRegex.findAll(smsBody).map { it.groupValues[1] }.toList()
-        return (labeled + standalone).distinct()
+        val standaloneAlphaNumeric = standaloneAlphaNumericTidRegex.findAll(smsBody).map { it.groupValues[1] }.toList()
+        return (labeled + standalone + standaloneAlphaNumeric).distinct()
     }
 
     /**
