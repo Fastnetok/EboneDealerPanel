@@ -1,1 +1,186 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp"><Spinner android:id="@+id/panel" android:layout_width="match_parent" android:layout_height="wrap_content"/><Spinner android:id="@+id/method" android:layout_width="match_parent" android:layout_height="wrap_content"/><EditText android:id="@+id/amount" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Amount" android:inputType="numberDecimal"/><EditText android:id="@+id/tid" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Transaction ID"/><Button android:id="@+id/shot" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SHARE SCREENSHOT"/><TextView android:id="@+id/result" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp"/><Button android:id="@+id/submit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SUBMIT PAYMENT"/></LinearLayout></ScrollView>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <Spinner
+            android:id="@+id/panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Spinner
+            android:id="@+id/method"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" />
+
+        <EditText
+            android:id="@+id/amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Amount"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/tid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Transaction ID" />
+
+        <!-- Optional Sender Name Field -->
+        <EditText
+            android:id="@+id/senderName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Sender Name (Optional)"
+            android:inputType="textPersonName" />
+
+        <Button
+            android:id="@+id/shot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="SHARE SCREENSHOT" />
+
+        <TextView
+            android:id="@+id/result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="SUBMIT PAYMENT" />
+
+        <!-- ================= BANK DETAILS CARD ================= -->
+        <LinearLayout
+            android:id="@+id/bankDetailsCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_bank_card"
+            android:padding="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="SEND PAYMENT TO"
+                android:textColor="#9AA0AC"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:id="@+id/bankNameValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:text="Bank Alfalah"
+                android:textColor="#14213D"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Balanced QR Frame -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_qr_frame"
+                android:padding="8dp">
+                <ImageView
+                    android:id="@+id/bankQrImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/qr_bank_alfalah"
+                    android:contentDescription="Bank QR Code" />
+            </FrameLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="12dp"
+                android:background="#EDEFF3" />
+
+            <!-- Details Rows -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Title"
+                    android:textColor="#8A8F98"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/bankTitleValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.6"
+                    android:gravity="end"
+                    android:text="Muhammad Abbas"
+                    android:textColor="#14213D"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Account #"
+                    android:textColor="#8A8F98"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/bankAccountValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.6"
+                    android:gravity="end"
+                    android:text="5721 5002 8070 58"
+                    android:textColor="#14213D"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/copyAccountBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="6dp"
+                android:padding="6dp"
+                android:text="COPY ACCOUNT NUMBER"
+                android:textColor="#0F9D58"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="?attr/selectableItemBackground" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

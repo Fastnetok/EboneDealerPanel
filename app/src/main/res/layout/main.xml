@@ -49,6 +49,31 @@
             </LinearLayout>
             <TextView android:layout_width="44dp" android:layout_height="39dp" android:background="@drawable/bg_soft_purple" android:gravity="center" android:text="▣" android:textColor="@color/ebone_primary" android:textSize="20sp"/>
         </LinearLayout>
+
+        <!-- NEW: 24/7 Support/Balance Banner -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_soft_purple"
+            android:backgroundTint="#20FFFFFF"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp">
+            <View
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/dot_online" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="24/7 INSTANT BALANCE SERVICE"
+                android:textColor="@color/ebone_white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- ISP balances -->
@@ -60,24 +85,24 @@
         android:layout_marginEnd="12dp">
 
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="4dp" android:layout_weight="1" android:background="@drawable/bg_wateen" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WATEEN" android:textColor="@color/ebone_blue" android:textSize="15sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="13sp"/>
-            <TextView android:id="@+id/w" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rs. 0" android:textColor="@color/ebone_blue" android:textSize="19sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="View Details  ›" android:textColor="@color/ebone_blue" android:textSize="11sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WATEEN" android:textColor="@color/ebone_blue" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="12sp"/>
+            <TextView android:id="@+id/w" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WATEEN\nRs. 0" android:gravity="center" android:textColor="@color/ebone_blue" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="View Details  ›" android:textColor="@color/ebone_blue" android:textSize="10sp"/>
         </LinearLayout>
 
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginHorizontal="4dp" android:layout_weight="1" android:background="@drawable/bg_ebone" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EBONE" android:textColor="@color/ebone_green" android:textSize="15sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="13sp"/>
-            <TextView android:id="@+id/e" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rs. 0" android:textColor="@color/ebone_green" android:textSize="19sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="View Details  ›" android:textColor="@color/ebone_green" android:textSize="11sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EBONE" android:textColor="@color/ebone_green" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="12sp"/>
+            <TextView android:id="@+id/e" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EBONE\nRs. 0" android:gravity="center" android:textColor="@color/ebone_green" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="View Details  ›" android:textColor="@color/ebone_green" android:textSize="10sp"/>
         </LinearLayout>
 
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="4dp" android:layout_weight="1" android:background="@drawable/bg_zong" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ZONG 4G" android:textColor="@color/ebone_pink" android:textSize="15sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="13sp"/>
-            <TextView android:id="@+id/z" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rs. 0" android:textColor="@color/ebone_pink" android:textSize="19sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="View Details  ›" android:textColor="@color/ebone_pink" android:textSize="11sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ZONG 4G" android:textColor="@color/ebone_pink" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Balance" android:textColor="@color/ebone_text" android:textSize="12sp"/>
+            <TextView android:id="@+id/z" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ZONG\nRs. 0" android:gravity="center" android:textColor="@color/ebone_pink" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="View Details  ›" android:textColor="@color/ebone_pink" android:textSize="10sp"/>
         </LinearLayout>
     </LinearLayout>
 
