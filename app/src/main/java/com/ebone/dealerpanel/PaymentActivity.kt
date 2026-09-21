@@ -1,12 +1,17 @@
 package com.ebone.dealerpanel
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -26,12 +31,38 @@ class PaymentActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_PANEL = "extra_panel"
     }
+
+    private data class BankDetails(
+        val bankName: String,
+        val accountTitle: String,
+        val accountNumber: String,
+        val qrDrawableRes: Int
+    )
+
+    private val bankDetailsMap: Map<String, BankDetails> = mapOf(
+        "BANK_ALFALAH" to BankDetails(
+            bankName = "Bank Alfalah",
+            accountTitle = "Muhammad Abbas",
+            accountNumber = "5721 5002 8070 58",
+            qrDrawableRes = R.drawable.qr_bank_alfalah
+        )
+    )
+
     private lateinit var repo: DealerRepo
     private lateinit var panelSpinner: Spinner
     private lateinit var methodSpinner: Spinner
     private lateinit var amountInput: EditText
     private lateinit var tidInput: EditText
+    private lateinit var senderNameInput: EditText
     private lateinit var result: TextView
+
+    private lateinit var bankDetailsCard: View
+    private lateinit var bankQrImage: ImageView
+    private lateinit var bankNameValue: TextView
+    private lateinit var bankTitleValue: TextView
+    private lateinit var bankAccountValue: TextView
+    private lateinit var copyAccountBtn: TextView
+
     private var ocrResult: SmsPaymentParser.ParsedResult? = null
     private var screenshotSelected = false
 
@@ -48,7 +79,15 @@ class PaymentActivity : AppCompatActivity() {
         methodSpinner = findViewById(R.id.method)
         amountInput = findViewById(R.id.amount)
         tidInput = findViewById(R.id.tid)
+        senderNameInput = findViewById(R.id.senderName)
         result = findViewById(R.id.result)
+
+        bankDetailsCard = findViewById(R.id.bankDetailsCard)
+        bankQrImage = findViewById(R.id.bankQrImage)
+        bankNameValue = findViewById(R.id.bankNameValue)
+        bankTitleValue = findViewById(R.id.bankTitleValue)
+        bankAccountValue = findViewById(R.id.bankAccountValue)
+        copyAccountBtn = findViewById(R.id.copyAccountBtn)
 
         panelSpinner.adapter = ArrayAdapter(
             this,
@@ -58,13 +97,6 @@ class PaymentActivity : AppCompatActivity() {
 
         val presetPanel = intent.getStringExtra(EXTRA_PANEL)
 
-        // NEW: zone-aware — filter the panel dropdown down to only the
-        // ISPs actually enabled for this dealer's zone (defaults to
-        // "Okara" / all-enabled if not yet zone-tagged, so nothing
-        // changes until Admin assigns zones). This is the safety net
-        // for dealers who reach this screen via the generic "Pay"
-        // button rather than a specific WATEEN/EBONE/ZONG tap on the
-        // dashboard (which already blocks disabled ones on MainActivity).
         lifecycleScope.launch {
             val id = repo.id()
             val zone = if (id.isNotBlank()) {
@@ -73,7 +105,7 @@ class PaymentActivity : AppCompatActivity() {
             val config = repo.zoneServiceConfig(zone)
             val allPanels = listOf("Wateen" to (config["wateenEnabled"] ?: true), "Ebone" to (config["eboneEnabled"] ?: true), "Zong" to (config["zongEnabled"] ?: true))
             val enabledPanels = allPanels.filter { it.second }.map { it.first }
-            val panelsToShow = enabledPanels.ifEmpty { listOf("Wateen", "Ebone", "Zong") } // never leave the dropdown empty
+            val panelsToShow = enabledPanels.ifEmpty { listOf("Wateen", "Ebone", "Zong") }
 
             panelSpinner.adapter = ArrayAdapter(
                 this@PaymentActivity,
@@ -87,6 +119,15 @@ class PaymentActivity : AppCompatActivity() {
             }
         }
 
+        methodSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateBankCard()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                bankDetailsCard.visibility = View.GONE
+            }
+        }
+
         lifecycleScope.launch {
             val id = repo.id()
             val methods = if (id.isBlank()) emptyList() else repo.methods(id)
@@ -96,6 +137,14 @@ class PaymentActivity : AppCompatActivity() {
                 android.R.layout.simple_spinner_dropdown_item,
                 visible.map { methodLabel(it) }
             )
+            updateBankCard()
+        }
+
+        copyAccountBtn.setOnClickListener {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            val accountNumber = bankAccountValue.text.toString().replace(" ", "")
+            clipboard.setPrimaryClip(ClipData.newPlainText("Account Number", accountNumber))
+            Toast.makeText(this, "Account number copied", Toast.LENGTH_SHORT).show()
         }
 
         findViewById<Button>(R.id.shot).setOnClickListener {
@@ -119,11 +168,7 @@ class PaymentActivity : AppCompatActivity() {
     )
 
     private fun methodLabel(value: String): String {
-        val key = value.trim()
-            .uppercase()
-            .replace(" ", "_")
-            .replace("-", "_")
-
+        val key = normalizeMethodKey(value)
         return when (key) {
             "EASYPAISA" -> "EasyPaisa"
             "JAZZCASH" -> "JazzCash"
@@ -135,6 +180,36 @@ class PaymentActivity : AppCompatActivity() {
             "OTHER_BANK", "OTHERBANK" -> "Other Bank"
             else -> value.trim().replace('_', ' ')
         }
+    }
+
+    private fun normalizeMethodKey(value: String): String = value.trim()
+        .uppercase()
+        .replace(" ", "_")
+        .replace("-", "_")
+
+    private fun updateBankCard() {
+        val selected = methodSpinner.selectedItem?.toString()
+        if (selected.isNullOrBlank()) {
+            bankDetailsCard.visibility = View.GONE
+            return
+        }
+
+        val normalizedKey = when (val key = normalizeMethodKey(selected)) {
+            "ALFALAH_BANK", "BANKALFALAH" -> "BANK_ALFALAH"
+            else -> key
+        }
+
+        val details = bankDetailsMap[normalizedKey]
+        if (details == null) {
+            bankDetailsCard.visibility = View.GONE
+            return
+        }
+
+        bankNameValue.text = details.bankName
+        bankTitleValue.text = details.accountTitle
+        bankAccountValue.text = details.accountNumber
+        bankQrImage.setImageResource(details.qrDrawableRes)
+        bankDetailsCard.visibility = View.VISIBLE
     }
 
     private fun runOcr(uri: Uri) {
@@ -159,11 +234,6 @@ class PaymentActivity : AppCompatActivity() {
                     if (tidInput.text.isNullOrBlank() && parsed.transactionId != null) {
                         tidInput.setText(parsed.transactionId)
                     }
-                    // NEW: word "OCR" removed (dealer shouldn't know the
-                    // verification method), but the actual TID/Amount
-                    // readout stays visible in "{TID} / Rs. {Amount}"
-                    // format — this is Confirm karo/adjust before
-                    // submitting info the dealer genuinely needs to see.
                     result.text = "${parsed.transactionId ?: "TID not found"} / Rs. ${parsed.amount ?: "?"}"
                 }
             },
@@ -190,6 +260,8 @@ class PaymentActivity : AppCompatActivity() {
     private fun submitPayment() {
         val amount = amountInput.text.toString().trim().toDoubleOrNull()
         val tid = tidInput.text.toString().trim()
+        val senderName = senderNameInput.text.toString().trim()
+
         if (amount == null || amount <= 0.0) {
             Toast.makeText(this, "Enter a valid amount", Toast.LENGTH_SHORT).show()
             return
@@ -220,44 +292,15 @@ class PaymentActivity : AppCompatActivity() {
                     .get()
                     .await()
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Unable to check payment limit. Please try again.",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@PaymentActivity, "Unable to check payment limit. Please try again.", Toast.LENGTH_LONG).show()
                 return@launch
             }
 
-            val minimumAmount = limitsSnapshot.child("minimumAmount")
-                .getValue(Long::class.java) ?: 3000L
+            val minimumAmount = limitsSnapshot.child("minimumAmount").getValue(Long::class.java) ?: 3000L
+            val maximumAmount = limitsSnapshot.child("maximumAmount").getValue(Long::class.java) ?: 100000L
 
-            val maximumAmount = limitsSnapshot.child("maximumAmount")
-                .getValue(Long::class.java) ?: 100000L
-
-            if (minimumAmount < 1L || maximumAmount < minimumAmount) {
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Payment limits are not configured correctly. Please contact Admin.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@launch
-            }
-
-            if (amount < minimumAmount.toDouble()) {
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Minimum payment is Rs. $minimumAmount. Please enter Rs. $minimumAmount or more.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@launch
-            }
-
-            if (amount > maximumAmount.toDouble()) {
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Maximum payment is Rs. $maximumAmount. Please enter a lower amount.",
-                    Toast.LENGTH_LONG
-                ).show()
+            if (amount < minimumAmount.toDouble() || amount > maximumAmount.toDouble()) {
+                Toast.makeText(this@PaymentActivity, "Amount must be between $minimumAmount and $maximumAmount", Toast.LENGTH_LONG).show()
                 return@launch
             }
 
@@ -268,6 +311,7 @@ class PaymentActivity : AppCompatActivity() {
                 "paymentSource" to methodSpinner.selectedItem.toString(),
                 "amount" to amount,
                 "bankTransactionId" to tid,
+                "senderName" to senderName,
                 "ocrAmount" to (ocrResult?.amount ?: amount),
                 "ocrTransactionId" to (ocrResult?.transactionId ?: tid),
                 "status" to "PENDING",
@@ -277,18 +321,10 @@ class PaymentActivity : AppCompatActivity() {
 
             try {
                 repo.save(data)
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Payment submitted. Verification is pending for up to 30 minutes.",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@PaymentActivity, "Payment submitted successfully", Toast.LENGTH_LONG).show()
                 finish()
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@PaymentActivity,
-                    "Payment could not be added: ${e.message ?: "Unknown error"}",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@PaymentActivity, "Failed to submit: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

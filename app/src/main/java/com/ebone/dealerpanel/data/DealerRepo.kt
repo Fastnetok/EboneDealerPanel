@@ -96,13 +96,63 @@ class DealerRepo(private val context: Context) {
         transactions.document().set(data).await()
     }
 
-    suspend fun used(tid: String): Boolean = transactions
-        .whereEqualTo("bankTransactionId", tid)
-        .whereIn("status", listOf("PENDING", "VERIFIED", "APPROVED"))
-        .get()
-        .await()
-        .documents
-        .isNotEmpty()
+    // NEW: cross-app duplicate check — both apps share the same
+    // Firebase project. A dealer could get franchise balance credited
+    // here using a slip, then try to reuse the SAME slip's TID in the
+    // separate Customer ID App to also activate a customer (or vice
+    // versa). Checking the Customer ID App's own "transactions"
+    // collection closes that gap.
+    private val customerTransactions = db.collection("transactions")
+    private val suspiciousActivity = db.collection("suspiciousActivity")
+
+    /**
+     * Checks whether [tid] has already been submitted anywhere in the
+     * system (across ALL dealers, not just the current one — the query
+     * has no dealerId filter). Any existing record in a non-final state
+     * counts as "already used" — including NEEDS_REVIEW (a TID matched
+     * to an older SMS, sitting in the admin's manual-review queue) —
+     * so the same proof/TID can never be resubmitted while an earlier
+     * submission of it is still anywhere in the pipeline.
+     *
+     * ALSO checks the separate Customer ID App's "transactions"
+     * collection for the same TID — a dealer activating a customer
+     * with a slip, then trying to reuse the SAME slip's TID here to
+     * also claim franchise balance credit, is exactly the kind of
+     * cross-app reuse this is meant to catch. When found, logs the
+     * attempt to "suspiciousActivity" for Admin visibility.
+     */
+    suspend fun used(tid: String): Boolean {
+        val ownMatch = transactions
+            .whereEqualTo("bankTransactionId", tid)
+            .whereIn("status", listOf("PENDING", "VERIFIED", "NEEDS_REVIEW", "APPROVED"))
+            .get()
+            .await()
+            .documents
+            .isNotEmpty()
+        if (ownMatch) return true
+
+        // NEW: also check the Customer ID App's collection for the same TID.
+        val customerSnapshot = customerTransactions
+            .whereEqualTo("bankTransactionId", tid)
+            .whereIn("status", listOf("PENDING", "VERIFIED"))
+            .get()
+            .await()
+        if (!customerSnapshot.isEmpty) {
+            val customerId = customerSnapshot.documents.firstOrNull()?.getString("customerId") ?: "unknown"
+            suspiciousActivity.add(
+                mapOf(
+                    "type" to "CROSS_APP_TID_REUSE_ATTEMPT",
+                    "detail" to "TID already used to activate a customer; attempted again in Dealer App for balance credit.",
+                    "bankTransactionId" to tid,
+                    "customerId" to customerId,
+                    "attemptedByDealerId" to (id()),
+                    "detectedAt" to System.currentTimeMillis()
+                )
+            )
+            return true
+        }
+        return false
+    }
 
     fun addDealer(data: Map<String, Any>, callback: (Boolean, String) -> Unit) {
         val ref = dealers.document()
