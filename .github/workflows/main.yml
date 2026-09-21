@@ -3,7 +3,7 @@ name: Android Release Build
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 # NEW: workflow ko GitHub Release banane/update karne ki permission chahiye
